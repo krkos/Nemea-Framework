@@ -129,7 +129,7 @@ typedef enum trap_verbose_level {
 #define TRAP_IFC_TIMEOUT 2000000 ///< size of default timeout on output interfaces in microseconds
 /**@}*/
 
-#ifdef DEBUG
+#ifndef NDEBUG
    /*! \brief Debug message macro if DEBUG macro is defined
     *
     * now 3 known DEBUG LEVELS
@@ -166,7 +166,7 @@ static inline int __attribute__ ((format (printf, 2, 3))) MSG(int l, const char 
 
 void trap_verbose_msg(int level, char *string);
 
-#ifdef DEBUG
+#ifndef NDEBUG
 /*! Macro for verbose message */
 #define VERBOSE(level,format,args...) if (trap_verbose>=level) { \
    snprintf(trap_err_msg,4095,"%s:%d "format,__FILE__, __LINE__, ##args); \
@@ -203,16 +203,13 @@ struct reader_threads_s {
 };
 
 /**
- * List of all output interfaces and their timeouts.
- *
- * It is used by automatic flush buffer thread to send buffer after
- * a timeout on one of the output interfaces has elapsed.
+ * \brief List of autoflush timeouts of output interfaces.
  */
-struct out_ifc_timeout_s {
-   int idx;            /**< index of output interface */
-   int64_t tm;         /**< timeout to be elapsed */
-   int64_t tm_backup;  /**< backup value of the timeout */
-};
+typedef struct autoflush_timeouts {
+   int idx;            /**< Index of output interface. */
+   int64_t tm;         /**< Autoflush timeout to be elapsed. */
+   int64_t tm_backup;  /**< Backup value of the autoflush timeout. */
+} ifc_autoflush_t;
 
 /**
  * Libtrap context structure.
@@ -231,7 +228,7 @@ struct trap_ctx_priv_s {
    volatile int terminated;
 
    /**
-    * Is output interface parameter changed? (0 ~ false, should run)
+    * Number of interface changes waiting to be applied.
     */
    volatile int ifc_change;
 
@@ -320,9 +317,9 @@ struct trap_ctx_priv_s {
    int timeout_thread_initialized;
 
    /**
-    * Timeouts for autoflush
+    * Timeouts for autoflush thread.
     */
-   struct out_ifc_timeout_s *ifc_autoflush_timeout;
+   ifc_autoflush_t *ifc_autoflush_timeout;
 
    /**
     * Service thread that enables communication with module
