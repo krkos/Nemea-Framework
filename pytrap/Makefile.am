@@ -28,3 +28,8 @@ doc:
 	pdoc3 -o doc --html pytrap
 	mv doc/pytrap.html doc/index.html
 
+.PHONY: testpip
+testpip:
+	CFLAGS="-I../libtrap/include -I.. -L../libtrap/src/.libs -L../unirec/.libs" python3 setup.py build_ext --inplace -R$(PWD)/../libtrap/src/.libs
+	python3 setup.py bdist_wheel
+	python3 setup.py test
